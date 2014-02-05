@@ -18,7 +18,7 @@ https://github.com/steeltomato/jmeter-amf/wiki/Donate
 ---
 
 * JMeter 2.6+
-* BlazeDS libraries
+* FlexSDK libraries (instead of BlazeDS, I used FlexSDK 3.5)
 * Optional: JAR containing all classes used for remoting
   * Provides cleaner, more reliable XML
 
@@ -29,8 +29,7 @@ https://github.com/steeltomato/jmeter-amf/wiki/Donate
 
 2. Copy JMeter-AMF.jar to jmeter/lib/ext.
 
-3. Download BlazeDS and copy blazeds-common.jar and blazeds-core.jar to jmeter/lib/ext.
-  * http://opensource.adobe.com/wiki/display/blazeds/Downloads
+3. Download FlexSDK 3.5 and copy flex-messaging-common.jar, flex-messaging-core.jar, flex-messaging-opt.jar, flex-messaging-proxy.jar and flex-messaging-remoting.jar to jmeter/lib/ext.
 
  Credits
 ---
