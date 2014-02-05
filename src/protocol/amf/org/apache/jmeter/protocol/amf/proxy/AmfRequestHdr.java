@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.CharUtils;
+import org.apache.commons.lang3.CharUtils;
 import org.apache.jmeter.protocol.amf.gui.AmfRequestGui;
 import org.apache.jmeter.protocol.amf.sampler.AmfRequest;
 import org.apache.jmeter.protocol.amf.util.AmfXmlConverter;
@@ -40,7 +40,6 @@ import org.apache.jmeter.protocol.http.control.Header;
 import org.apache.jmeter.protocol.http.control.HeaderManager;
 import org.apache.jmeter.protocol.http.control.gui.HttpTestSampleGui;
 import org.apache.jmeter.protocol.http.gui.HeaderPanel;
-import org.apache.jmeter.protocol.http.proxy.HttpRequestHdr;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerFactory;
 import org.apache.jmeter.protocol.http.util.ConversionUtils;
@@ -456,11 +455,11 @@ public class AmfRequestHdr {
                 sampler.parseArguments(postData.trim(), contentEncoding); //standard name=value postData
             } else if (postData.length() > 0) {
             	if (amf) {
-            		//sampler.setProperty(AmfRequest.RAWAMF, postData);
+            		sampler.setProperty(AmfRequest.RAWAMF, postData);
                     
                     // If AMF, try to process the request and store it
                     if (postData != null && postData.length() > 0) {
-    	            	String xml = AmfXmlConverter.convertAmfMessageToXml(postData.getBytes());
+    	            	String xml = AmfXmlConverter.convertAmfMessageToXml(postData.getBytes(), true);
     	            	sampler.setProperty(AmfRequest.AMFXML, xml);
                     }
             	}

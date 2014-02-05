@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.httpclient.Header;
@@ -40,7 +38,6 @@ import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.Interruptible;
 import org.apache.jmeter.samplers.SampleResult;
-import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.threads.JMeterContextService;
@@ -260,7 +257,7 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
             	log.debug("Decoding response and saving in ${"+resVar+"}");
             	
             	// Decode response
-            	String amfResXml = AmfXmlConverter.convertAmfMessageToXml(res.getResponseData());
+            	String amfResXml = AmfXmlConverter.convertAmfMessageToXml(res.getResponseData(), true);
             	
             	JMeterVariables variables = JMeterContextService.getContext().getVariables();
             	variables.put(resVar, amfResXml);
