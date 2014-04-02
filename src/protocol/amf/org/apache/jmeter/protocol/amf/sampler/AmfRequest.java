@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.httpclient.Header;
@@ -38,6 +40,7 @@ import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.Interruptible;
 import org.apache.jmeter.samplers.SampleResult;
+import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.threads.JMeterContextService;
@@ -52,7 +55,7 @@ import org.apache.log.Logger;
  */
 public class AmfRequest extends HTTPSampler2 implements Interruptible {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
@@ -64,6 +67,8 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
     public static final String OBJECT_ENCODING_VERSION = "AmfSampler.objectEncoding"; // $NON-NLS-1$
     public static final String PROPERTY_OVERRIDES = "AmfSampler.property_overrides"; // $NON-NLS-1$
     public static final String RESPONSE_VAR = "AmfSampler.resVar"; // $NON-NLS-1$
+
+    public byte[] RawAMF;
 
     public void setAmfXml(String amfXml) {
         setProperty(AMFXML, amfXml);
@@ -82,7 +87,7 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
     }
     
     private Arguments getPropertyOverrides() {
-    	Arguments args = (Arguments) getProperty(PROPERTY_OVERRIDES).getObjectValue();
+        Arguments args = (Arguments) getProperty(PROPERTY_OVERRIDES).getObjectValue();
         if (args == null) {
             args = new Arguments();
             setPropertyOverrides(args);
@@ -91,11 +96,11 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
     }
     
     public String getResponseVar() {
-    	return getPropertyAsString(RESPONSE_VAR);
+        return getPropertyAsString(RESPONSE_VAR);
     }
     
     public void setResponseVar(String resVar) {
-    	setProperty(RESPONSE_VAR, resVar);
+        setProperty(RESPONSE_VAR, resVar);
     }
 
     /**
@@ -116,17 +121,17 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
 
         SampleResult result = null;
         try {
-	        // Issue Http request
-	        result = super.sample();
-	        
-	        if (result.getResponseCode().equals(RESPONSE_CODE_200)) {
-	        	
-	        	// decode and process AMF message response
-	            //amfRequest.processResponse(result);
-	            
-	        }
+            // Issue Http request
+            result = super.sample();
+            
+            if (result.getResponseCode().equals(RESPONSE_CODE_200)) {
+                
+                // decode and process AMF message response
+                //amfRequest.processResponse(result);
+                
+            }
         } finally {
-        	//amfRequest.close();
+            //amfRequest.close();
         }
 
         return result;
@@ -149,14 +154,14 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
         amfXml = overrideProperties(amfXml);
         
         if (log.isDebugEnabled())
-        	log.debug("AMF Sample XML: \n"+amfXml);
+            log.debug("AMF Sample XML: \n"+amfXml);
         
         // Create an AMF request from the XML and add it as the POST request body
-        byte[] amfMessage = AmfXmlConverter.convertXmlToAmfMessage(amfXml);
+        byte[] amfMessage = RawAMF;
         
         if (amfMessage != null) {
-	        ByteArrayRequestEntity requestEntity = new ByteArrayRequestEntity(amfMessage, contentType); 
-	        httpMethod.setRequestEntity(requestEntity);
+            ByteArrayRequestEntity requestEntity = new ByteArrayRequestEntity(amfMessage, contentType); 
+            httpMethod.setRequestEntity(requestEntity);
         }
 
         HTTPSampleResult res = new HTTPSampleResult();
@@ -254,25 +259,25 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
             //   TODO: Make sure this doesn't change response times
             String resVar = getResponseVar();
             if (resVar != null && !resVar.isEmpty() && res.getBytes() > 0) {
-            	log.debug("Decoding response and saving in ${"+resVar+"}");
-            	
-            	// Decode response
-            	String amfResXml = AmfXmlConverter.convertAmfMessageToXml(res.getResponseData(), true);
-            	
-            	JMeterVariables variables = JMeterContextService.getContext().getVariables();
-            	variables.put(resVar, amfResXml);
+                log.debug("Decoding response and saving in ${"+resVar+"}");
+                
+                // Decode response
+                String amfResXml = AmfXmlConverter.convertAmfMessageToXml(res.getResponseData());
+                
+                JMeterVariables variables = JMeterContextService.getContext().getVariables();
+                variables.put(resVar, amfResXml);
             }
         }
     }
 
     protected void setDefaultRequestHeaders(HttpMethod httpMethod) {
-    	httpMethod.setRequestHeader("Cache-Control", "no-cache");
-    	httpMethod.setRequestHeader("Accept", "*/*");
-    	httpMethod.setRequestHeader("Accept-Encoding", "gzip, deflate");
+        httpMethod.setRequestHeader("Cache-Control", "no-cache");
+        httpMethod.setRequestHeader("Accept", "*/*");
+        httpMethod.setRequestHeader("Accept-Encoding", "gzip, deflate");
     }
     
     public void testEnded() {
-    	super.testEnded();
+        super.testEnded();
     }
     
     /**
@@ -282,20 +287,20 @@ public class AmfRequest extends HTTPSampler2 implements Interruptible {
      * @return
      */
     private String overrideProperties(String xml) {
-    	String newXml = new String(xml);
-    	
-    	Map<String, String> args = getPropertyOverrides().getArgumentsAsMap();
-    	
-    	for(Map.Entry<String, String> arg : args.entrySet()) {
-    		String findStr = arg.getKey();
-    		String replaceStr = arg.getValue();
-    		
-    		//log.debug("Replacing \""+findStr+"\" with \""+replaceStr+"\"");
-    		
-    		newXml = newXml.replace(findStr, replaceStr);
-    	}
-    	
-    	return newXml;
+        String newXml = new String(xml);
+        
+        Map<String, String> args = getPropertyOverrides().getArgumentsAsMap();
+        
+        for(Map.Entry<String, String> arg : args.entrySet()) {
+            String findStr = arg.getKey();
+            String replaceStr = arg.getValue();
+            
+            //log.debug("Replacing \""+findStr+"\" with \""+replaceStr+"\"");
+            
+            newXml = newXml.replace(findStr, replaceStr);
+        }
+        
+        return newXml;
     }
 
     /**

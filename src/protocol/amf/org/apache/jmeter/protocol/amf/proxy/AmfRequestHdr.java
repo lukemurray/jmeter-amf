@@ -40,6 +40,7 @@ import org.apache.jmeter.protocol.http.control.Header;
 import org.apache.jmeter.protocol.http.control.HeaderManager;
 import org.apache.jmeter.protocol.http.control.gui.HttpTestSampleGui;
 import org.apache.jmeter.protocol.http.gui.HeaderPanel;
+import org.apache.jmeter.protocol.http.proxy.HttpRequestHdr;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerFactory;
 import org.apache.jmeter.protocol.http.util.ConversionUtils;
@@ -137,18 +138,18 @@ public class AmfRequestHdr {
     }
     
     public Map<String, Header> getHeaders() {
-    	return headers;
+        return headers;
     }
 
-	public HTTPSamplerBase getSampler() {
-		return sampler;
-	}
+    public HTTPSamplerBase getSampler() {
+        return sampler;
+    }
 
-	public void setSampler(HTTPSamplerBase sampler) {
-		this.sampler = sampler;
-	}
+    public void setSampler(HTTPSamplerBase sampler) {
+        this.sampler = sampler;
+    }
 
-	/**
+    /**
      * Parses a http header from a stream.
      *
      * @param in
@@ -270,7 +271,7 @@ public class AmfRequestHdr {
 
     public HTTPSamplerBase getSampler(Map<String, String> pageEncodings, Map<String, String> formEncodings, boolean amf)
             throws MalformedURLException, IOException {
-    	
+        
         AbstractSamplerGui tempGui = amf ? new AmfRequestGui() : new HttpTestSampleGui();
         tempGui.setName(amf ? "AMF Sampler" : "HTTP Sampler");
 
@@ -281,7 +282,7 @@ public class AmfRequestHdr {
 
         tempGui.configure(sampler);
         tempGui.modifyTestElement(sampler);
-    	
+        
         // Defaults
         sampler.setFollowRedirects(false);
         sampler.setUseKeepAlive(true);
@@ -454,16 +455,15 @@ public class AmfRequestHdr {
                 // but maybe we should only parse arguments if the content type is as expected
                 sampler.parseArguments(postData.trim(), contentEncoding); //standard name=value postData
             } else if (postData.length() > 0) {
-            	if (amf) {
-            		sampler.setProperty(AmfRequest.RAWAMF, postData);
-                    
+                if (amf) {
                     // If AMF, try to process the request and store it
                     if (postData != null && postData.length() > 0) {
-    	            	String xml = AmfXmlConverter.convertAmfMessageToXml(postData.getBytes(), true);
-    	            	sampler.setProperty(AmfRequest.AMFXML, xml);
+                        String xml = AmfXmlConverter.convertAmfMessageToXml(rawPostData);
+                        sampler.setProperty(AmfRequest.AMFXML, xml);
+                        ((AmfRequest)sampler).RawAMF = rawPostData;
                     }
-            	}
-            	else if (isBinaryContent(contentType)) {
+                }
+                else if (isBinaryContent(contentType)) {
                     try {
                         File tempDir = new File(binaryDirectory);
                         File out = File.createTempFile(method, binaryFileSuffix, tempDir);
